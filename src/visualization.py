@@ -41,22 +41,26 @@ def plot_deflection(
     deflections,
     members_depth,
     members_width,
+    members_real,
     x_fac,
     path,
     fname,
+    conf,
     valid_flags=None,
 ):
     if not os.path.exists(path):
         os.makedirs(path)
     members_area = members_depth * members_width
     members_area = members_area * 5
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     axes = fig.add_subplot(111)
     fig.gca().set_aspect("equal", adjustable="box")
     if valid_flags is None:
         valid_flags = np.ones(len(member))
     # Plot members
     for i, member in enumerate(members):
+        if members_real[i] == False:
+            continue
         bin_count = len(deflections[i])
         L = lengths[i]
 
@@ -64,7 +68,12 @@ def plot_deflection(
         node_e = nodes[member[1]]
 
         axes.plot(
-            [node_s[0], node_e[0]], [node_s[1], node_e[1]], "green", lw=0.75
+            [node_s[0], node_e[0]],
+            [node_s[1], node_e[1]],
+            "gray",
+            lw=1,
+            linestyle="--",
+            alpha=0.5,
         )  # Member
 
         deflection_g = deflections[i]
@@ -94,6 +103,25 @@ def plot_deflection(
                 "r",
                 lw=members_area[i],
             )
+
+        column_candidate = []
+
+    for i in conf["possible_columns_down"]:
+        for j in range(conf["transfer_row"]):
+            column_candidate.append(
+                (conf["horizontal_scale"] * i, conf["vertical_scale"] * j)
+            )
+
+    for i in conf["possible_columns_up"]:
+        for j in range(conf["transfer_row"], conf["num_rows"]):
+            column_candidate.append(
+                (conf["horizontal_scale"] * i, conf["vertical_scale"] * j)
+            )
+
+    x = [coord[0] for coord in column_candidate]
+    y = [coord[1] for coord in column_candidate]
+
+    plt.scatter(x, y, s=10, c="green", marker="s", alpha=0.5)
     axes.set_xlabel("Distance (m)")
     axes.set_ylabel("Distance (m)")
     axes.set_title("Deflected shape")

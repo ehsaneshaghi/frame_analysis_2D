@@ -21,10 +21,10 @@ class GraphHandler:
         self.horizontal_scale = conf["horizontal_scale"]
         self.vertical_scale = conf["vertical_scale"]
         self.possible_columns_up = conf.get(
-            "possible_cols_up", np.arange(self.num_cols)
+            "possible_columns_up", np.arange(self.num_cols)
         )
         self.possible_columns_down = conf.get(
-            "possible_cols_down", np.arange(self.num_cols)
+            "possible_columns_down", np.arange(self.num_cols)
         )
         self.distance_lower_bound = conf.get("distance_lower_bound", 4)
         self.distance_upper_bound = conf.get("distance_upper_bound", 10)
@@ -59,9 +59,9 @@ class GraphHandler:
 
     def simplify_graph(self, G, analysis="vertical"):
         Gs = self.unify_edges(G.copy())
-        # Gs = self.node_tuple_2_index(Gs)  # relabel nodes before adding hops
-        # if analysis == "V" or analysis == "C":
-        #     self.add_hop_edges(Gs)
+        Gs = self.node_tuple_2_index(Gs)  # relabel nodes before adding hops
+        if analysis == "V" or analysis == "C":
+            self.add_hop_edges(Gs)
         self.set_rotation(Gs)
         self.set_column_flag(Gs)
         self.set_distance(Gs)
@@ -230,7 +230,11 @@ class GraphHandler:
             if y1 == self.transfer_row:
                 for node_j in G.nodes():
                     x2, y2 = G.nodes[node_j]["coo"]
-                    if y2 > self.transfer_row and x1 == x2 and G.degree(node_j) > 2:
+                    if (
+                        y2 > (self.transfer_row + 1)
+                        and x1 == x2
+                        and G.degree(node_j) > 2
+                    ):
                         G.add_edge(node_i, node_j, real=False)
 
     def set_foundation_flag(self, G):
@@ -833,11 +837,12 @@ class GraphHandler:
 
         return graphs
 
-    def draw_graph(Gs, path):
+    def draw_graph(Gs, path, conf):
         v = GraphHandler.graph_to_array(Gs)
         name = Gs.graph["name"]
         valid_flags = [Gs[u][v]["valid"] for u, v in Gs.edges()]
         deflections = [Gs[u][v]["deflection"][:, :2] for u, v in Gs.edges()]
+        members_real = [Gs[u][v]["real"] for u, v in Gs.edges()]
         vs.plot_deflection(
             v["edges"],
             v["node_positions"],
@@ -846,8 +851,10 @@ class GraphHandler:
             deflections,
             v["depths"],
             v["widths"],
+            members_real,
             100,
             path,
             name,
+            conf,
             valid_flags,
         )

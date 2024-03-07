@@ -7,10 +7,10 @@ import networkx as nx
 
 
 env = StructEnvironment()
-num_episodes = 10
+num_episodes = 3
 top_stability_count = 20
 top_weight_count = 3
-mode = "train"
+mode = "test_3"
 analysis = "C"
 FEA = True
 visualize = True
@@ -81,7 +81,7 @@ while episode < num_episodes:
     graph_handler.save_graph(L, f"data/{mode}/{analysis}/line_simplified/graphs/")
     Gs = graph_handler.node_tuple_2_index(Gs)
     if visualize:
-        gu.GraphHandler.draw_graph(Gs, "images/")
+        gu.GraphHandler.draw_graph(Gs, "images/", conf)
     episode += 1
 
 if analysis == "V":
